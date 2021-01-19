@@ -1,0 +1,36 @@
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+{
+  "manifestVersion": "2.0.0",
+  "signatureType": "community",
+  "signedByOrg": "yesoreyeram",
+  "signedByOrgName": "yesoreyeram",
+  "plugin": "yesoreyeram-infinity-datasource",
+  "version": "0.6.0",
+  "time": 1608332466718,
+  "keyId": "7e4d0c6a708866e7",
+  "files": {
+    "module.js.LICENSE.txt": "f13b64bccbad6d4c6afc78987e400726cc2620e3e536518e8b5886f823f05142",
+    "LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "annotations.editor.html": "c54cb4402933a6fafc6f4a8b257ac7798be1c8008c68a4755bdd159da9174998",
+    "module.js.map": "6bb74e7be9e409fedcd1973ffb5e3eed67dbdccfa6a6dc507b32641aba95e7e4",
+    "LAST_UPDATED": "be8662c351343ad8be625b53d72e126cc0dc746db8a65d2de30b5a2b654319af",
+    "img/Infinity.png": "5f6526c8ee430c0ec4d0932391fdd39987f6acd9d10999fbc4dd8c484afc22b4",
+    "module.js": "db0a56047a56adb1ad7b5820343e0302e4d5a94476cfb8c8f13f152b30282034",
+    "CHANGELOG.md": "aefec58dd92d80c28227fb2fc584c6d44ca75cdb67e64e3238f1eef94682a420",
+    "plugin.json": "00d319da88aafb6dcc2d5b63be13fb57a7fa522a9227600564c5e85b94346b7b",
+    "README.md": "8b3a822dd0161254c987dab6aedb4b61ea133abf2f3a148bed7d087e1b794752"
+  }
+}
+-----BEGIN PGP SIGNATURE-----
+Version: OpenPGP.js v4.10.1
+Comment: https://openpgpjs.org
+
+wqAEARMKAAYFAl/dNLIACgkQfk0ManCIZufNSAIIiXee2Q92m7wuEhKkyHkQ
+ws/jUuz2skSVBxHf3VHdVYcSuCIqMoleN/q8gseEIV+vHQ0ygZfuUwLKADyj
+yvrFJBACB1wbxYgb6rkbyKT6XdXYkK0anINg9gij3ovRzVOCUbdFtIT1EG/r
+Kg6jNvT+zkqhiUHoRYIN6IceW2IyTt4kkfcf
+=sPVJ
+-----END PGP SIGNATURE-----

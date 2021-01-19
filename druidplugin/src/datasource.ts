@@ -81,10 +81,20 @@ export default class DruidDatasource {
     });
   }
 
+  metricFindQuery(query: string, options?: any) {
+    return this.druidSQLQuery(this.templateSrv.replace(query)).then(result => {
+      //console.log(result);
+      result.data.shift();
+      const data = _.flatten(result.data).map(d => ({ text: d }));
+      //console.log(data);
+      return data;
+    });
+  }
+
   doQuery(from, to, granularity, target) {
     let datasource = target.druidDS;
     let filters = target.filters;
-    let aggregators = target.aggregators.map(this.splitCardinalityFields);
+    let aggregators = _.map(target.aggregators,this.splitCardinalityFields);
     let postAggregators = target.postAggregators;
     let groupBy = _.map(target.groupBy, (e) => { return this.templateSrv.replace(e) });
     let limitSpec = null;
@@ -165,7 +175,7 @@ export default class DruidDatasource {
               dimensions: Array<string | Object>, metric: Array<string | Object>, filters: Array<Druid.DruidFilter>,
               selectThreshold: Object) {
     let query: Druid.DruidSelectQuery = {
-      "queryType": "select",
+      "queryType": "scan",
       "dataSource": datasource,
       "granularity": granularity,
       "pagingSpec": { "pagingIdentifiers": {}, "threshold": selectThreshold },
@@ -189,7 +199,8 @@ export default class DruidDatasource {
       granularity: granularity,
       aggregations: aggregators,
       postAggregations: postAggregators,
-      intervals: intervals
+      intervals: intervals,
+      context: {skipEmptyBuckets: "true" }
     };
 
     if (filters && filters.length > 0) {
@@ -247,6 +258,21 @@ export default class DruidDatasource {
       method: 'POST',
       url: this.url + '/druid/v2/',
       data: query
+    };
+    return this.backendSrv.datasourceRequest(options);
+  };
+
+
+  druidSQLQuery(queryString: string) {
+    const options = {
+      method: 'POST',
+      url: this.url + '/druid/v2/sql',
+      data: { 
+        query: queryString,
+        resultFormat: "array",
+        header: true,
+        context: { sqlOuterLimit: 100}
+      }
     };
     return this.backendSrv.datasourceRequest(options);
   };
@@ -532,18 +558,18 @@ export default class DruidDatasource {
   }
 
   convertSelectData(data) {
-    const resultList = _.map(data, "result");
-    const eventsList = _.map(resultList, "events");
-    const eventList = _.flatten(eventsList);
+    //const resultList = _.map(data, "result");
+    //const eventsList = _.map(resultList, "events");
+    const eventList = data[0].events;
     const result = {};
     for (let i = 0; i < eventList.length; i++) {
-      const event = eventList[i].event;
-      const timestamp = event.timestamp;
-      if (_.isEmpty(timestamp)) {
-        continue;
-      }
+      const event = eventList[i];
+      const timestamp = event.__time;
+      // if (_.isEmpty(timestamp)) {
+      //   continue;
+      // }
       for (const key in event) {
-        if (key !== "timestamp") {
+        if (key !== "__time") {
           if (!result[key]) {
             result[key] = { "target": key, "datapoints": [] };
           }
@@ -589,8 +615,14 @@ export default class DruidDatasource {
   }
 
   replaceTemplateValues(obj, attrList) {
+    const currentMoment = moment();
+    const currentTime = currentMoment.format('x');
+    const yesterday = currentMoment.subtract(1,'days').format('x');
     const substitutedVals = attrList.map(attr => {
-      return this.templateSrv.replace(obj[attr]);
+      return this.templateSrv.replace(obj[attr],{ 
+        now:{ current: {value: currentTime, text: currentTime}, value: currentTime},
+        yesterday: { current: {value: yesterday, text: yesterday}, value: yesterday}
+       });
     });
     return _.assign(_.clone(obj, true), _.zipObject(attrList, substitutedVals));
   }

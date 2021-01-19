@@ -73,11 +73,18 @@ System.register(["lodash", "moment", "app/core/utils/datemath"], function (expor
                         return { data: lodash_1.default.flatten(results) };
                     });
                 };
+                DruidDatasource.prototype.metricFindQuery = function (query, options) {
+                    return this.druidSQLQuery(this.templateSrv.replace(query)).then(function (result) {
+                        result.data.shift();
+                        var data = lodash_1.default.flatten(result.data).map(function (d) { return ({ text: d }); });
+                        return data;
+                    });
+                };
                 DruidDatasource.prototype.doQuery = function (from, to, granularity, target) {
                     var _this = this;
                     var datasource = target.druidDS;
                     var filters = target.filters;
-                    var aggregators = target.aggregators.map(this.splitCardinalityFields);
+                    var aggregators = lodash_1.default.map(target.aggregators, this.splitCardinalityFields);
                     var postAggregators = target.postAggregators;
                     var groupBy = lodash_1.default.map(target.groupBy, function (e) { return _this.templateSrv.replace(e); });
                     var limitSpec = null;
@@ -137,7 +144,7 @@ System.register(["lodash", "moment", "app/core/utils/datemath"], function (expor
                 };
                 DruidDatasource.prototype.selectQuery = function (datasource, intervals, granularity, dimensions, metric, filters, selectThreshold) {
                     var query = {
-                        "queryType": "select",
+                        "queryType": "scan",
                         "dataSource": datasource,
                         "granularity": granularity,
                         "pagingSpec": { "pagingIdentifiers": {}, "threshold": selectThreshold },
@@ -158,7 +165,8 @@ System.register(["lodash", "moment", "app/core/utils/datemath"], function (expor
                         granularity: granularity,
                         aggregations: aggregators,
                         postAggregations: postAggregators,
-                        intervals: intervals
+                        intervals: intervals,
+                        context: { skipEmptyBuckets: "true" }
                     };
                     if (filters && filters.length > 0) {
                         query.filter = this.buildFilterTree(filters);
@@ -206,6 +214,20 @@ System.register(["lodash", "moment", "app/core/utils/datemath"], function (expor
                         method: 'POST',
                         url: this.url + '/druid/v2/',
                         data: query
+                    };
+                    return this.backendSrv.datasourceRequest(options);
+                };
+                ;
+                DruidDatasource.prototype.druidSQLQuery = function (queryString) {
+                    var options = {
+                        method: 'POST',
+                        url: this.url + '/druid/v2/sql',
+                        data: {
+                            query: queryString,
+                            resultFormat: "array",
+                            header: true,
+                            context: { sqlOuterLimit: 100 }
+                        }
                     };
                     return this.backendSrv.datasourceRequest(options);
                 };
@@ -398,18 +420,13 @@ System.register(["lodash", "moment", "app/core/utils/datemath"], function (expor
                     });
                 };
                 DruidDatasource.prototype.convertSelectData = function (data) {
-                    var resultList = lodash_1.default.map(data, "result");
-                    var eventsList = lodash_1.default.map(resultList, "events");
-                    var eventList = lodash_1.default.flatten(eventsList);
+                    var eventList = data[0].events;
                     var result = {};
                     for (var i = 0; i < eventList.length; i++) {
-                        var event_1 = eventList[i].event;
-                        var timestamp = event_1.timestamp;
-                        if (lodash_1.default.isEmpty(timestamp)) {
-                            continue;
-                        }
+                        var event_1 = eventList[i];
+                        var timestamp = event_1.__time;
                         for (var key in event_1) {
-                            if (key !== "timestamp") {
+                            if (key !== "__time") {
                                 if (!result[key]) {
                                     result[key] = { "target": key, "datapoints": [] };
                                 }
@@ -448,8 +465,14 @@ System.register(["lodash", "moment", "app/core/utils/datemath"], function (expor
                 };
                 DruidDatasource.prototype.replaceTemplateValues = function (obj, attrList) {
                     var _this = this;
+                    var currentMoment = moment_1.default();
+                    var currentTime = currentMoment.format('x');
+                    var yesterday = currentMoment.subtract(1, 'days').format('x');
                     var substitutedVals = attrList.map(function (attr) {
-                        return _this.templateSrv.replace(obj[attr]);
+                        return _this.templateSrv.replace(obj[attr], {
+                            now: { current: { value: currentTime, text: currentTime }, value: currentTime },
+                            yesterday: { current: { value: yesterday, text: yesterday }, value: yesterday }
+                        });
                     });
                     return lodash_1.default.assign(lodash_1.default.clone(obj, true), lodash_1.default.zipObject(attrList, substitutedVals));
                 };

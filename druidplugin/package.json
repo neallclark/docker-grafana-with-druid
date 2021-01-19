@@ -1,7 +1,7 @@
 {
   "name": "paypal-druid-plugin",
   "version": "4.0.0",
-  "description": "Grafana plugin for Druid real-time OLAP database",
+  "description": "Grafana plugin for Druid real-time OLAP database and querying",
   "main": "index.js",
   "scripts": {
     "build": "grunt",
