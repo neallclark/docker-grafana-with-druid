@@ -8,8 +8,9 @@ ARG GF_INSTALL_IMAGE_RENDERER_PLUGIN="false"
 
 ENV GF_PATHS_PLUGINS="/var/lib/grafana-plugins"
 
-RUN mkdir -p "$GF_PATHS_PLUGINS" && \
-    chown -R grafana:grafana "$GF_PATHS_PLUGINS"
+RUN mkdir -p "$GF_PATHS_PLUGINS" 
+    #&& \
+    #chown -R grafana:grafana "$GF_PATHS_PLUGINS"
 
 RUN if [ $GF_INSTALL_IMAGE_RENDERER_PLUGIN = "true" ]; then \
     echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
@@ -21,7 +22,7 @@ RUN if [ $GF_INSTALL_IMAGE_RENDERER_PLUGIN = "true" ]; then \
     rm -rf /usr/share/grafana/tools/phantomjs; \
 fi
 
-USER grafana
+#USER grafana
 
 ENV GF_RENDERER_PLUGIN_CHROME_BIN="/usr/bin/chromium-browser"
 
@@ -50,3 +51,5 @@ fi
 COPY druidplugin /var/lib/grafana-plugins/abhisant-druid-datasource/
 COPY grafana-meta-queries /var/lib/grafana-plugins/grafana-meta-queries/
 COPY yesoreyeram-infinity-datasource /var/lib/grafana-plugins/yesoreyeram-infinity-datasource/
+COPY mosaic-grafana-datasource /var/lib/grafana-plugins/mosaic-grafana-datasource/
+COPY mosaic-grafana-graph /var/lib/grafana-plugins/mosaic-grafana-graph/
